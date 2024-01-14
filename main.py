@@ -1,10 +1,69 @@
+import math
 import sys
+import time
 
-from Box2D import b2World, b2PolygonShape
+from Box2D import *
 import pygame
-import engine
+from engine import *
 
 from engine import Vector2
+
+
+class Box(GameEventListener, Renderable):
+    def __init__(self, scene):
+        super().__init__()
+        super(Renderable, self).__init__()
+        self.sprite = Sprite(pygame.image.load('box.png'))
+        self.sprite.pivot = Vector2(16, 16)
+        self.sprite.scale *= 3
+        fixtureDef = b2FixtureDef()
+        fixtureDef.shape = b2PolygonShape(
+            box=(self.sprite.width / 2 / Transform.PPM, self.sprite.height / 2 / Transform.PPM))
+        fixtureDef.restitution = 0.2
+        fixtureDef.friction = 0.9
+        fixtureDef.density = 1
+        bodyDef = b2BodyDef()
+        bodyDef.fixtures = fixtureDef
+        self.body = scene.world.CreateDynamicBody(fixtures=fixtureDef, position=(4, 6), angle=1)
+        self.transform = Transform(self.sprite, self.body)
+
+    def render(self, screen, camera, deltatime):
+        self.sprite.render(screen, camera, deltatime)
+
+    @staticmethod
+    def instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider):
+        obj = Box(scene)
+        obj.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
+        return obj
+
+
+class Box1(GameEventListener, Renderable):
+    def __init__(self, scene):
+        super().__init__()
+        super(Renderable, self).__init__()
+        self.sprite = Sprite(pygame.image.load('box.png'))
+        self.sprite.pivot = Vector2(16, 16)
+        self.sprite.scale.x *= 7
+        fixtureDef = b2FixtureDef()
+        fixtureDef.shape = b2PolygonShape(
+            box=(self.sprite.width / 2 / Transform.PPM, self.sprite.height / 2 / Transform.PPM))
+        fixtureDef.restitution = 0.2
+        fixtureDef.friction = 0.9
+        fixtureDef.density = 1
+        bodyDef = b2BodyDef()
+        bodyDef.fixtures = fixtureDef
+        self.body = scene.world.CreateStaticBody(fixtures=fixtureDef)
+        self.transform = Transform(self.sprite, self.body)
+    
+    def render(self, screen, camera, deltatime):
+        self.sprite.render(screen, camera, deltatime)
+
+    @staticmethod
+    def instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider):
+        obj = Box1(scene)
+        obj.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
+        return obj
+
 
 pygame.init()
 window_size = (width, height) = (501, 501)
@@ -13,35 +72,24 @@ pygame.display.set_caption('')
 FPS = 60
 clock = pygame.time.Clock()
 
-PPM = 40.0
-
-phys_world = b2World(gravity=(0, -10), doSleep=True)
-ground_body = phys_world.CreateStaticBody(
-    position=(0, 1),
-    shapes=b2PolygonShape(box=(25, 2.5)),
-)
-dynamic_body = phys_world.CreateDynamicBody(position=(5, 7.5), angle=15)
-box = dynamic_body.CreatePolygonFixture(box=(1, 0.5), density=1, friction=0.3)
-box1 = dynamic_body.CreatePolygonFixture(box=(0.5, 1), density=1, friction=0.3)
-
-event_system = engine.EventSystem()
-render_system = engine.EventSystem()
-engine.init_event_systems(event_system, render_system)
-a = engine.Sprite(pygame.image.load('bebra.png'))
-a.pos = Vector2(100, 100)
+scene = Scene.load('construct/Layouts/Layout 1.xml', 'construct/New project.caproj', [Box, Box1])
+scene.main_camera = Camera(Vector2(0.5, 0.5), 25.1, 25.1)
 while True:
-    deltatime = clock.tick(FPS)
-    phys_world.Step(deltatime / 1000, 10, 10)
+    deltatime = clock.tick(FPS) / 1000
+    scene.update(deltatime)
+    if pygame.key.get_pressed()[pygame.K_a]:
+        scene.main_camera.pos -= Vector2(deltatime * 10, 0)
+    if pygame.key.get_pressed()[pygame.K_d]:
+        scene.main_camera.pos += Vector2(deltatime * 10, 0)
+    if pygame.key.get_pressed()[pygame.K_s]:
+        scene.main_camera.pos -= Vector2(0, deltatime * 10)
+    if pygame.key.get_pressed()[pygame.K_w]:
+        scene.main_camera.pos += Vector2(0, deltatime * 10)
     for event in pygame.event.get():
-        event_system.call_event(event)
+        scene.listen_event(event)
         if event.type == pygame.QUIT:
             sys.exit(0)
+
     screen.fill(0xffffff)
-    for body in phys_world.bodies:
-        for fixture in body.fixtures:
-            shape = fixture.shape
-            vertices = [(body.transform * v) * PPM for v in shape.vertices]
-            vertices = [(int(v[0]), int(501 - v[1])) for v in vertices]
-            pygame.draw.polygon(screen, 0xfff000, vertices)
-    render_system.call_event(engine.RenderEvent(screen, deltatime))
+    scene.render(screen, None, deltatime=deltatime)
     pygame.display.flip()
