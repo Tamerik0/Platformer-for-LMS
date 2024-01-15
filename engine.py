@@ -229,6 +229,7 @@ class Scene(Renderable, InputEventListener, Updatable):
     def render(self, screen: Surface, camera, deltatime):
         canvas = Surface((self.main_camera.width * Transform.PPM * self.main_camera.scale.x,
                           self.main_camera.height * Transform.PPM * self.main_camera.scale.y))
+        canvas.fill(0xff00)
         for i in self.renderables:
             i.render(canvas, self.main_camera, deltatime)
         screen.blit(pygame.transform.flip(canvas, 0, 1), (0, 0))
@@ -241,6 +242,10 @@ class Scene(Renderable, InputEventListener, Updatable):
         self.world.Step(deltatime, 6, 6)
         for i in self.updatables:
             i.update(deltatime)
+        try:
+            print(self.main_camera.pos, self.objects[0].transform.pos)
+        except:
+            pass
 
     @staticmethod
     def load(layout_path, proj_path, types: list[type] = []):
@@ -263,16 +268,24 @@ class Scene(Renderable, InputEventListener, Updatable):
             collider = []
             for i in proj.iter('object-type'):
                 if i.get('name') == type:
-                    for point in i.iter('animation-folder').__next__().iter('animation').__next__().iter(
-                            'frame').__next__().iter('collision-poly').__next__().iter('point'):
-                        collider.append(((float(point.get('x')) - 0.5) * width / Transform.PPM,
-                                         (float(point.get('y')) - 0.5) * height / Transform.PPM))
+                    try:
+                        for point in i.iter('animation-folder').__next__().iter('animation').__next__().iter(
+                                'frame').__next__().iter('collision-poly').__next__().iter('point'):
+                            collider.append(((float(point.get('x')) - 0.5) * width / Transform.PPM,
+                                             (float(point.get('y')) - 0.5) * height / Transform.PPM))
+                    except:
+                        collider = [(-0.5, 0.5), (-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)]
+                        collider=[(((i[0] - 0.5) * width / Transform.PPM,
+                                         (i[1] - 0.5) * height / Transform.PPM)) for i in collider]
+                        break
+
             for i in types:
                 if i.__name__ == type:
                     obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
+                    scene.objects.append(obj)
                     break
 
-            scene.objects.append(obj)
+
         return scene
 
 

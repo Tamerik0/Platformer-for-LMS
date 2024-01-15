@@ -43,33 +43,6 @@
         <prop name="Use high-DPI display">Yes</prop>
     </configuration-settings>
     <object-folder>
-        <object-type name="Box1" sid="383875185354145">
-            <plugin id="Sprite" />
-            <behaviors>
-                <behavior-type name="Solid" sid="118112142311423">
-                    <behavior id="solid" />
-                </behavior-type>
-                <behavior-type name="Physics" sid="382326382384109">
-                    <behavior id="Physics" />
-                </behavior-type>
-            </behaviors>
-            <animation-folder>
-                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="550535438010143" speed="5">
-                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\box.png">
-                        <collision-poly>
-                            <point x="0.09375" y="0.09375" />
-                            <point x="0.5" y="0" />
-                            <point x="0.90625" y="0.09375" />
-                            <point x="1" y="0.5" />
-                            <point x="0.90625" y="0.90625" />
-                            <point x="0.5" y="1" />
-                            <point x="0.09375" y="0.90625" />
-                            <point x="0" y="0.5" />
-                        </collision-poly>
-                    </frame>
-                </animation>
-            </animation-folder>
-        </object-type>
         <object-type name="Box" sid="425731701931404">
             <plugin id="Sprite" />
             <behaviors>
@@ -92,6 +65,168 @@
                             <point x="0.5" y="1" />
                             <point x="0" y="1" />
                             <point x="0" y="0.5" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Block" sid="204375639161544">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="398374462366620" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\block.png" />
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Spike" sid="646472933576667">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="609198128231141" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Lovushka2" sid="938283304513695">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="719882761082157" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Lovushka1" sid="168954492825864">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="301670357360953" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Spider_pad" sid="998584603612683">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="549865979253411" speed="5">
+                    <frame duration="1" hotspotX="0.508475" hotspotY="0.521739" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spider_pad.png">
+                        <collision-poly>
+                            <point x="0.20339" y="0.521739" />
+                            <point x="0.5" y="0.521739" />
+                            <point x="0.79661" y="0.521739" />
+                            <point x="0.745763" y="0.478261" />
+                            <point x="0.983051" y="0.956522" />
+                            <point x="0.0169492" y="0.956522" />
+                            <point x="0.254237" y="0.478261" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="red_orb" sid="654120252185806">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="248580975370418" speed="5">
+                    <frame duration="1" hotspotX="0.507692" hotspotY="0.507692" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\red_orb.png">
+                        <collision-poly>
+                            <point x="0.153846" y="0.153846" />
+                            <point x="0.492308" y="0" />
+                            <point x="0.846154" y="0.153846" />
+                            <point x="1" y="0.492308" />
+                            <point x="0.846154" y="0.846154" />
+                            <point x="0.492308" y="1" />
+                            <point x="0.153846" y="0.846154" />
+                            <point x="0" y="0.492308" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Sprite2" sid="456137956310091">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="741881195547044" speed="5">
+                    <frame duration="1" hotspotX="0.52" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\blue_portal.png">
+                        <collision-poly>
+                            <point x="0.04" y="0.0138889" />
+                            <point x="0.48" y="0.0416667" />
+                            <point x="0.68" y="0.111111" />
+                            <point x="1" y="0.5" />
+                            <point x="0.68" y="0.888889" />
+                            <point x="0.48" y="0.958333" />
+                            <point x="0.04" y="0.986111" />
+                            <point x="0.4" y="0.5" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Spike2" sid="442242989697037">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="780629160923069" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Spike3" sid="222887810832626">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="267086213318477" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Lovushka3" sid="192223625897773">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="953238592327105" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\block.png" />
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Lovushka4" sid="425910274968520">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="229048639151815" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\spike.png">
+                        <collision-poly>
+                            <point x="0.575" y="0.308333" />
+                            <point x="0.583334" y="0.741667" />
+                            <point x="0.408333" y="0.741667" />
+                            <point x="0.4" y="0.308334" />
                         </collision-poly>
                     </frame>
                 </animation>
