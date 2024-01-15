@@ -13,6 +13,7 @@
         <plugin author="Scirra" id="Sprite" version="1">Sprite</plugin>
     </used-plugins>
     <used-behaviors>
+        <behavior author="Scirra" id="Physics" version="1">Physics</behavior>
         <behavior author="Scirra" id="solid" version="1">Solid</behavior>
     </used-behaviors>
     <used-effects />
@@ -48,6 +49,9 @@
                 <behavior-type name="Solid" sid="118112142311423">
                     <behavior id="solid" />
                 </behavior-type>
+                <behavior-type name="Physics" sid="382326382384109">
+                    <behavior id="Physics" />
+                </behavior-type>
             </behaviors>
             <animation-folder>
                 <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="550535438010143" speed="5">
@@ -68,6 +72,14 @@
         </object-type>
         <object-type name="Box" sid="425731701931404">
             <plugin id="Sprite" />
+            <behaviors>
+                <behavior-type name="Physics" sid="921158956483694">
+                    <behavior id="Physics" />
+                </behavior-type>
+                <behavior-type name="Solid" sid="113359768523718">
+                    <behavior id="solid" />
+                </behavior-type>
+            </behaviors>
             <animation-folder>
                 <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="221306222797140" speed="5">
                     <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\TamerixX\PycharmProjects\pythonProject6\box.png">
@@ -76,9 +88,9 @@
                             <point x="0.5" y="0" />
                             <point x="1" y="0" />
                             <point x="1" y="0.5" />
-                            <point x="0.90625" y="0.90625" />
+                            <point x="1" y="1" />
                             <point x="0.5" y="1" />
-                            <point x="0.09375" y="0.90625" />
+                            <point x="0" y="1" />
                             <point x="0" y="0.5" />
                         </collision-poly>
                     </frame>

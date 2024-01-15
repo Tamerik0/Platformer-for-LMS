@@ -1,50 +1,12 @@
 import math
 import xml.etree.ElementTree
+from typing import Any
 
 import pygame
+import multipledispatch
 from Box2D import *
 from pygame import Surface
 from pygame.math import Vector2
-
-
-class EventSystem:
-    def __init__(self):
-        self.listeners = dict()
-
-    def add_listener(self, listener, event_type=None, key=None):
-        if isinstance(listener, BaseEventListener):
-            listener.add_to_system(self)
-        else:
-            if event_type not in self.listeners.keys():
-                self.listeners[event_type] = {None: []}
-            if key not in self.listeners[event_type]:
-                self.listeners[key] = []
-            self.listeners[event_type][key].append(listener)
-
-    def call_event(self, event):
-        keys = [None]
-        if hasattr(event, 'get_event_keys'):
-            keys_ = event.get_event_keys
-            if keys_ is not None:
-                keys = keys_
-        if event.__class__ in self.listeners.keys():
-            for i in keys:
-                for j in self.listeners[event.__class__][i]:
-                    j(event)
-
-    def remove_listener(self, listener, event_type=None, key=None):
-        if isinstance(listener, BaseEventListener):
-            listener = listener.get_event_method()
-        if event_type is None:
-            for i in self.listeners.items():
-                for j in i.items():
-                    j.remove(listener)
-        else:
-            if key is None:
-                for i in self.listeners[event_type]:
-                    i.remove(listener)
-            else:
-                self.listeners[event_type][key].remove(listener)
 
 
 class CollisionEvent:
@@ -56,100 +18,87 @@ class CollisionEvent:
         return [self.contact.fixtureA, self.contact.fixtureB]
 
 
-class UpdateEvent:
-    def __init__(self, deltatime):
-        self.deltatime = deltatime
-
-
-class RenderEvent:
-    def __init__(self, screen, deltatime, camera=None):
-        self.screen = screen
-        self.camera = camera
-        self.deltatime = deltatime
-
-
 class CollisionSystem(b2ContactListener):
-    def __init__(self, event_system):
+    def __init__(self):
         super().__init__()
-        self.event_system = event_system
+        self.listeners = {None: []}
+
+    def add_listener(self, listener, fixture=None):
+        if fixture not in self.listeners.keys():
+            self.listeners[fixture] = []
+        self.listeners[fixture].append(listener)
 
     def BeginContact(self, contact: b2Contact):
-        self.event_system.call_event(CollisionEvent(contact, True))
+        for i in self.listeners.get(contact.fixtureA, []):
+            i.begin_contact(contact)
+        for i in self.listeners.get(contact.fixtureB, []):
+            i.begin_contact(contact)
 
     def EndContact(self, contact: b2Contact):
-        self.event_system.call_event(CollisionEvent(contact, False))
+        for i in self.listeners.get(contact.fixtureA, []):
+            i.end_contact(contact)
+        for i in self.listeners.get(contact.fixtureB, []):
+            i.end_contact(contact)
 
 
-class BaseEventListener:
-    def __init__(self):
-        self.event_systems = set()
+class CollisionListener:
+    def begin_contact(self, contact: b2Contact):
+        pass
 
-    def add_to_system(self, event_system, listener_type):
-        for i in self.get_event_keys():
-            event_system.add_listener(listener_type.get_event_method(self), listener_type.get_event_type(self), i)
-        self.event_systems.add(event_system)
-
-    def remove(self, listener_type):
-        for system in self.event_systems:
-            system.remove_listener(listener_type.get_event_method(self), listener_type.get_event_type(self))
-
-    def get_event_method(self):
-        return lambda *args: None
-
-    def get_event_type(self):
-        return None
-
-    def get_event_keys(self):
-        return [None]
+    def end_contact(self, contact: b2Contact):
+        pass
 
 
-class Renderable(BaseEventListener):
-    def get_event_method(self):
-        return self._render
-
-    def get_event_type(self):
-        return RenderEvent
-
-    def _render(self, event):
-        self.render(event.screen, event.camera, event.deltatime)
-
+class Renderable:
+    @multipledispatch.dispatch()
     def render(self, screen, camera, deltatime):
         pass
 
 
-class Updatable(BaseEventListener):
-    def get_event_method(self):
-        return self._update
-
-    def get_event_type(self):
-        return UpdateEvent
-
-    def _update(self, event):
-        self.update(event.deltatime)
-
+class Updatable:
     def update(self, deltatime):
         pass
 
 
-class GameEventListener(BaseEventListener):
-    def get_event_method(self):
-        return self.listen_event
-
-    def get_event_type(self):
-        return pygame.event.Event
-
+class InputEventListener:
     def listen_event(self, event):
         pass
 
 
-class Sprite(Renderable):
-    def __init__(self, img=None):
-        super().__init__()
+class GameObject:
+    def __init__(self, parent):
+        self.children = []
+        self.enabled = True
+        if isinstance(parent, Scene):
+            self.scene = parent
+        else:
+            self.scene = parent.scene
+            parent.children.append(self)
+        if isinstance(self, Renderable):
+            self.scene.renderables.append(self)
+        if isinstance(self, InputEventListener):
+            self.scene.input_listeners.append(self)
+        if isinstance(self, Updatable):
+            self.scene.updatables.append(self)
+
+    def set_enabled(self, enabled):
+        self.enabled = enabled
+        for i in self.children:
+            i.set_enabled(enabled)
+
+
+class Sprite(GameObject, Renderable):
+    def __init__(self, parent, img=None, x=0, y=0, width=None, height=None):
+        super().__init__(parent)
         self._pivot = Vector2(0, 0)
         self.image = img
         self.rotation = 0
         self.scale = Vector2(1, 1)
-        self.pos = Vector2(0, 0)
+        self.pos = Vector2(x, y)
+        if width != None:
+            self.width = width
+        if height != None:
+            self.height = height
 
     @property
     def pivot(self):
@@ -213,11 +162,11 @@ class Sprite(Renderable):
         screen.blit(rotated_image, render_pos)
 
 
-class Transform(Updatable):
+class Transform(GameObject, Updatable):
     PPM = 40
 
-    def __init__(self, sprite=None, body=None):
-        super().__init__()
+    def __init__(self, parent, sprite=None, body=None):
+        super().__init__(parent)
         self.sprite = sprite
         self.body = body
         self._pos = Vector2(0, 0)
@@ -256,21 +205,23 @@ class Transform(Updatable):
 
 
 class Camera(Transform):
-    def __init__(self, scale, width, height):
-        super().__init__()
+    def __init__(self, scene, scale, width, height):
+        super().__init__(scene)
         self.width = width
         self.height = height
         self.scale = scale
 
 
-class Scene(Renderable, GameEventListener, Updatable):
+class Scene(Renderable, InputEventListener, Updatable):
     def __init__(self):
         super(Renderable, self).__init__()
-        super(GameEventListener, self).__init__()
+        super(InputEventListener, self).__init__()
         super(Updatable, self).__init__()
         self.world = b2World((0, -9.81), True)
-        self.event_system = EventSystem()
-        self.collision_system = CollisionSystem(self.event_system)
+        self.renderables = []
+        self.updatables = []
+        self.input_listeners = []
+        self.collision_system = CollisionSystem()
         self.world.contactListener = self.collision_system
         self.objects = []
         self.main_camera = None
@@ -278,15 +229,18 @@ class Scene(Renderable, GameEventListener, Updatable):
     def render(self, screen: Surface, camera, deltatime):
         canvas = Surface((self.main_camera.width * Transform.PPM * self.main_camera.scale.x,
                           self.main_camera.height * Transform.PPM * self.main_camera.scale.y))
-        self.event_system.call_event(RenderEvent(canvas, deltatime, self.main_camera))
+        for i in self.renderables:
+            i.render(canvas, self.main_camera, deltatime)
         screen.blit(pygame.transform.flip(canvas, 0, 1), (0, 0))
 
-    def listen_event(self, event, *args):
-        self.event_system.call_event(event, *args)
+    def listen_event(self, event):
+        for i in self.input_listeners:
+            i.listen_event(event)
 
     def update(self, deltatime):
         self.world.Step(deltatime, 6, 6)
-        self.event_system.call_event(UpdateEvent(deltatime))
+        for i in self.updatables:
+            i.update(deltatime)
 
     @staticmethod
     def load(layout_path, proj_path, types: list[type] = []):
@@ -294,13 +248,14 @@ class Scene(Renderable, GameEventListener, Updatable):
         proj = xml.etree.ElementTree.parse(proj_path).getroot().iter('c2project').__next__().iter(
             'object-folder').__next__()
         scene = Scene()
+        layout_height = float(root.iter('c2layout').__next__().iter('size').__next__().iter('height').__next__().text)
         for instance in root.iter('c2layout').__next__().iter('layers').__next__().iter('layer').__next__().iter(
                 'instances').__next__().iter('instance'):
             type = instance.get('type')
             world = instance.iter('world').__next__()
             x = float(world.iter('x').__next__().text)
-            y = float(world.iter('y').__next__().text)
-            angle = float(world.iter('angle').__next__().text)
+            y = layout_height - float(world.iter('y').__next__().text)
+            angle = float(world.iter('angle').__next__().text) / math.pi * 180
             width = float(world.iter('width').__next__().text)
             height = float(world.iter('height').__next__().text)
             pivotX = float(world.iter('hotspotX').__next__().text)
@@ -310,17 +265,28 @@ class Scene(Renderable, GameEventListener, Updatable):
                 if i.get('name') == type:
                     for point in i.iter('animation-folder').__next__().iter('animation').__next__().iter(
                             'frame').__next__().iter('collision-poly').__next__().iter('point'):
-                        collider.append(Vector2(float(point.get('x')), float(point.get('y'))))
+                        collider.append(((float(point.get('x')) - 0.5) * width / Transform.PPM,
+                                         (float(point.get('y')) - 0.5) * height / Transform.PPM))
             for i in types:
                 if i.__name__ == type:
                     obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
                     break
 
             scene.objects.append(obj)
-            if isinstance(obj, Renderable):
-                obj.add_to_system(scene.event_system, Renderable)
-            if isinstance(obj, GameEventListener):
-                obj.add_to_system(scene.event_system, GameEventListener)
-            if isinstance(obj, Updatable):
-                obj.add_to_system(scene.event_system, Updatable)
         return scene
+
+
+def RigidBody(world: b2World, collider, pos=Vector2(0, 0), angle=0, body_type=b2_dynamicBody, density=1, friction=0.8,
+              restitution=0.1):
+    fixtureDef = b2FixtureDef()
+    fixtureDef.shape = b2PolygonShape(vertices=collider)
+    fixtureDef.restitution = restitution
+    fixtureDef.friction = friction
+    fixtureDef.density = density
+    bodyDef = b2BodyDef()
+    bodyDef.fixtures = fixtureDef
+    bodyDef.type = body_type
+    bodyDef.position = (pos.x, pos.y)
+    bodyDef.angle = angle
+    body = world.CreateBody(bodyDef)
+    return body

@@ -7,64 +7,7 @@ import pygame
 from engine import *
 
 from engine import Vector2
-
-
-class Box(GameEventListener, Renderable):
-    def __init__(self, scene):
-        super().__init__()
-        super(Renderable, self).__init__()
-        self.sprite = Sprite(pygame.image.load('box.png'))
-        self.sprite.pivot = Vector2(16, 16)
-        self.sprite.scale *= 3
-        fixtureDef = b2FixtureDef()
-        fixtureDef.shape = b2PolygonShape(
-            box=(self.sprite.width / 2 / Transform.PPM, self.sprite.height / 2 / Transform.PPM))
-        fixtureDef.restitution = 0.2
-        fixtureDef.friction = 0.9
-        fixtureDef.density = 1
-        bodyDef = b2BodyDef()
-        bodyDef.fixtures = fixtureDef
-        self.body = scene.world.CreateDynamicBody(fixtures=fixtureDef, position=(4, 6), angle=1)
-        self.transform = Transform(self.sprite, self.body)
-
-    def render(self, screen, camera, deltatime):
-        self.sprite.render(screen, camera, deltatime)
-
-    @staticmethod
-    def instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider):
-        obj = Box(scene)
-        obj.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
-        return obj
-
-
-class Box1(GameEventListener, Renderable):
-    def __init__(self, scene):
-        super().__init__()
-        super(Renderable, self).__init__()
-        self.sprite = Sprite(pygame.image.load('box.png'))
-        self.sprite.pivot = Vector2(16, 16)
-        self.sprite.scale.x *= 7
-        fixtureDef = b2FixtureDef()
-        fixtureDef.shape = b2PolygonShape(
-            box=(self.sprite.width / 2 / Transform.PPM, self.sprite.height / 2 / Transform.PPM))
-        fixtureDef.restitution = 0.2
-        fixtureDef.friction = 0.9
-        fixtureDef.density = 1
-        bodyDef = b2BodyDef()
-        bodyDef.fixtures = fixtureDef
-        self.body = scene.world.CreateStaticBody(fixtures=fixtureDef)
-        self.transform = Transform(self.sprite, self.body)
-    
-    def render(self, screen, camera, deltatime):
-        self.sprite.render(screen, camera, deltatime)
-
-    @staticmethod
-    def instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider):
-        obj = Box1(scene)
-        obj.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
-        return obj
-
-
+from GameObjects import *
 pygame.init()
 window_size = (width, height) = (501, 501)
 screen = pygame.display.set_mode(window_size)
@@ -73,7 +16,7 @@ FPS = 60
 clock = pygame.time.Clock()
 
 scene = Scene.load('construct/Layouts/Layout 1.xml', 'construct/New project.caproj', [Box, Box1])
-scene.main_camera = Camera(Vector2(0.5, 0.5), 25.1, 25.1)
+scene.main_camera = Camera(scene, Vector2(0.5, 0.5), 25.1, 25.1)
 while True:
     deltatime = clock.tick(FPS) / 1000
     scene.update(deltatime)
