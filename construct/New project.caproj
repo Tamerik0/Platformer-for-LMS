@@ -232,6 +232,22 @@
                 </animation>
             </animation-folder>
         </object-type>
+        <object-type name="Background" sid="101172561402129">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="828303105083883" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\8\PycharmProjects\Platformer\bg.png" />
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Player" sid="356375873400584">
+            <plugin id="Sprite" />
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Default" pingpong="0" repeatcount="1" repeatto="0" sid="865564096580856" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.5" original-source="C:\Users\8\PycharmProjects\Platformer\player.png" />
+                </animation>
+            </animation-folder>
+        </object-type>
     </object-folder>
     <families />
     <layout-folder>

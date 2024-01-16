@@ -3,7 +3,6 @@ import xml.etree.ElementTree
 from typing import Any
 
 import pygame
-import multipledispatch
 from Box2D import *
 from pygame import Surface
 from pygame.math import Vector2
@@ -50,7 +49,6 @@ class CollisionListener:
 
 
 class Renderable:
-    @multipledispatch.dispatch()
     def render(self, screen, camera, deltatime):
         pass
 
@@ -90,11 +88,12 @@ class GameObject:
 class Sprite(GameObject, Renderable):
     def __init__(self, parent, img=None, x=0, y=0, width=None, height=None):
         super().__init__(parent)
-        self._pivot = Vector2(0, 0)
+        self._pivot = Vector2(0.5, 0.5)
         self.image = img
         self.rotation = 0
         self.scale = Vector2(1, 1)
         self.pos = Vector2(x, y)
+        self.pivot = Vector2(0.5, 0.5)
         if width != None:
             self.width = width
         if height != None:
@@ -108,7 +107,7 @@ class Sprite(GameObject, Renderable):
     def pivot(self, value):
         self._pivot = value
         if self.image is not None:
-            self.center_offset = self.image.get_rect().center - value
+            self.center_offset = self.image.get_rect().center - Vector2(value.x*self.width, value.y*self.height)
 
     @property
     def image(self):
@@ -159,7 +158,7 @@ class Sprite(GameObject, Renderable):
         render_pos = self.pos - camera.pos * Transform.PPM
         render_pos = Vector2(render_pos.x * camera.scale.x, render_pos.y * camera.scale.y) - self.center_offset.rotate(
             -rotation) - rotated_image.get_rect().center
-        screen.blit(rotated_image, render_pos)
+        screen.blit(pygame.transform.flip(rotated_image, 0, 1), render_pos)
 
 
 class Transform(GameObject, Updatable):
@@ -222,14 +221,14 @@ class Scene(Renderable, InputEventListener, Updatable):
         self.updatables = []
         self.input_listeners = []
         self.collision_system = CollisionSystem()
-        self.world.contactListener = self.collision_system
+        # self.world.contactListener = self.collision_system
         self.objects = []
         self.main_camera = None
 
     def render(self, screen: Surface, camera, deltatime):
         canvas = Surface((self.main_camera.width * Transform.PPM * self.main_camera.scale.x,
                           self.main_camera.height * Transform.PPM * self.main_camera.scale.y))
-        canvas.fill(0xff00)
+        canvas.fill(0)
         for i in self.renderables:
             i.render(canvas, self.main_camera, deltatime)
         screen.blit(pygame.transform.flip(canvas, 0, 1), (0, 0))
@@ -242,48 +241,44 @@ class Scene(Renderable, InputEventListener, Updatable):
         self.world.Step(deltatime, 6, 6)
         for i in self.updatables:
             i.update(deltatime)
-        try:
-            print(self.main_camera.pos, self.objects[0].transform.pos)
-        except:
-            pass
 
     @staticmethod
-    def load(layout_path, proj_path, types: list[type] = []):
+    def load(layout_path, proj_path, types=[]):
         root = xml.etree.ElementTree.parse(layout_path).getroot()
         proj = xml.etree.ElementTree.parse(proj_path).getroot().iter('c2project').__next__().iter(
             'object-folder').__next__()
         scene = Scene()
         layout_height = float(root.iter('c2layout').__next__().iter('size').__next__().iter('height').__next__().text)
-        for instance in root.iter('c2layout').__next__().iter('layers').__next__().iter('layer').__next__().iter(
-                'instances').__next__().iter('instance'):
-            type = instance.get('type')
-            world = instance.iter('world').__next__()
-            x = float(world.iter('x').__next__().text)
-            y = layout_height - float(world.iter('y').__next__().text)
-            angle = float(world.iter('angle').__next__().text) / math.pi * 180
-            width = float(world.iter('width').__next__().text)
-            height = float(world.iter('height').__next__().text)
-            pivotX = float(world.iter('hotspotX').__next__().text)
-            pivotY = float(world.iter('hotspotY').__next__().text)
-            collider = []
-            for i in proj.iter('object-type'):
-                if i.get('name') == type:
-                    try:
-                        for point in i.iter('animation-folder').__next__().iter('animation').__next__().iter(
-                                'frame').__next__().iter('collision-poly').__next__().iter('point'):
-                            collider.append(((float(point.get('x')) - 0.5) * width / Transform.PPM,
-                                             (float(point.get('y')) - 0.5) * height / Transform.PPM))
-                    except:
-                        collider = [(-0.5, 0.5), (-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)]
-                        collider=[(((i[0] - 0.5) * width / Transform.PPM,
-                                         (i[1] - 0.5) * height / Transform.PPM)) for i in collider]
-                        break
+        for layer in root.iter('c2layout').__next__().iter('layers').__next__().iter('layer'):
+            for instance in layer.iter('instances').__next__().iter('instance'):
+                type = instance.get('type')
+                world = instance.iter('world').__next__()
+                x = float(world.iter('x').__next__().text)
+                y = layout_height - float(world.iter('y').__next__().text)
+                angle = float(world.iter('angle').__next__().text) / math.pi * 180
+                width = float(world.iter('width').__next__().text)
+                height = float(world.iter('height').__next__().text)
+                pivotX = float(world.iter('hotspotX').__next__().text)
+                pivotY = float(world.iter('hotspotY').__next__().text)
+                collider = []
+                for i in proj.iter('object-type'):
+                    if i.get('name') == type:
+                        try:
+                            for point in i.iter('animation-folder').__next__().iter('animation').__next__().iter(
+                                    'frame').__next__().iter('collision-poly').__next__().iter('point'):
+                                collider.append(((float(point.get('x')) - 0.5) * width / Transform.PPM,
+                                                 (float(point.get('y')) - 0.5) * height / Transform.PPM))
+                        except:
+                            collider = [(-0.5, 0.5), (-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)]
+                            collider=[(((i[0] - 0.5) * width / Transform.PPM,
+                                             (i[1] - 0.5) * height / Transform.PPM)) for i in collider]
+                            break
 
-            for i in types:
-                if i.__name__ == type:
-                    obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
-                    scene.objects.append(obj)
-                    break
+                for i in types:
+                    if i.__name__ == type:
+                        obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
+                        scene.objects.append(obj)
+                        break
 
 
         return scene

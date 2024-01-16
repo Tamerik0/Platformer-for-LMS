@@ -24,14 +24,7 @@ scene.main_camera = Camera(scene, Vector2(0.5, 0.5), 25.1, 25.1)
 while True:
     deltatime = clock.tick(FPS) / 1000
     scene.update(deltatime)
-    if pygame.key.get_pressed()[pygame.K_a]:
-        scene.main_camera.pos -= Vector2(deltatime * 10, 0)
-    if pygame.key.get_pressed()[pygame.K_d]:
-        scene.main_camera.pos += Vector2(deltatime * 10, 0)
-    if pygame.key.get_pressed()[pygame.K_s]:
-        scene.main_camera.pos -= Vector2(0, deltatime * 10)
-    if pygame.key.get_pressed()[pygame.K_w]:
-        scene.main_camera.pos += Vector2(0, deltatime * 10)
+
     for event in pygame.event.get():
         scene.listen_event(event)
         if event.type == pygame.QUIT:
@@ -39,4 +32,8 @@ while True:
 
     screen.fill(0xff00)
     scene.render(screen, None, deltatime=deltatime)
+    for body in scene.world.bodies:
+        for fixture in body.fixtures:
+            vertices = [((i[0]+body.position.x)*Transform.PPM/2+7, height-(i[1]+body.position.y)*Transform.PPM/2-4) for i in fixture.shape.vertices]
+            pygame.draw.polygon(screen,0xff0000,vertices, 1)
     pygame.display.flip()
