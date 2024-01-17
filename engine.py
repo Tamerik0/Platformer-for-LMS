@@ -86,7 +86,7 @@ class GameObject:
 
 
 class Sprite(GameObject, Renderable):
-    def __init__(self, parent, img=None, x=0, y=0, width=None, height=None):
+    def __init__(self, parent, img:pygame.image=None, x=0, y=0, width=None, height=None):
         super().__init__(parent)
         self._pivot = Vector2(0.5, 0.5)
         self.image = img
@@ -148,6 +148,11 @@ class Sprite(GameObject, Renderable):
         self.size = Vector2(self.width, value)
 
     def render(self, screen: Surface, camera, deltatime):
+        t = Surface((self.image.get_width()+100, self.image.get_height()+100), pygame.SRCALPHA)
+        t.set_colorkey((0,0,0,0))
+        # t.fill(0,special_flags=pygame.BLEND_RGBA_MIN)
+        t.blit(self.image, (50,50))
+        # self.image.set_colorkey((0,0,0,0))
         scaled_image = pygame.transform.scale(self.image,
                                               Vector2(self.size.x * camera.scale.x, self.size.y * camera.scale.y))
         self.rotation %= 360
@@ -238,12 +243,15 @@ class Scene(Renderable, InputEventListener, Updatable):
             i.listen_event(event)
 
     def update(self, deltatime):
-        self.world.Step(deltatime, 6, 6)
         for i in self.updatables:
             i.update(deltatime)
+        self.world.Step(deltatime, 3, 8)
+
+
 
     @staticmethod
     def load(layout_path, proj_path, types=[]):
+
         root = xml.etree.ElementTree.parse(layout_path).getroot()
         proj = xml.etree.ElementTree.parse(proj_path).getroot().iter('c2project').__next__().iter(
             'object-folder').__next__()
@@ -270,8 +278,8 @@ class Scene(Renderable, InputEventListener, Updatable):
                                                  (float(point.get('y')) - 0.5) * height / Transform.PPM))
                         except:
                             collider = [(-0.5, 0.5), (-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)]
-                            collider=[(((i[0] - 0.5) * width / Transform.PPM,
-                                             (i[1] - 0.5) * height / Transform.PPM)) for i in collider]
+                            collider=[((i[0] * width / Transform.PPM,
+                                             i[1] * height / Transform.PPM)) for i in collider]
                             break
 
                 for i in types:
