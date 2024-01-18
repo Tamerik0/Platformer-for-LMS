@@ -38,9 +38,9 @@ while True:
 
     screen.fill(0xff00)
     scene.render(screen, None, deltatime=deltatime)
-    # for body in scene.world.bodies:
-    #     pygame.draw.circle(screen, 0xff00,(body.position.x*Transform.PPM/2+7,height-body.position.y*Transform.PPM/2-4),3)
-    #     for fixture in body.fixtures:
-    #         vertices = [((i[0]+body.position.x)*Transform.PPM/2+7, height-(i[1]+body.position.y)*Transform.PPM/2-4) for i in [Vector2(j[0],j[1]).rotate(body.angle/math.pi*180) for j in fixture.shape.vertices]]
-    #         pygame.draw.polygon(screen,0xff0000,vertices, 1)
+    for body in scene.world.bodies:
+        pygame.draw.circle(screen, 0xff00,(body.position.x*Transform.PPM/2+7,height-body.position.y*Transform.PPM/2-4),3)
+        for fixture in body.fixtures:
+            vertices = [((i[0]+body.position.x)*Transform.PPM/2+7, height-(i[1]+body.position.y)*Transform.PPM/2-4) for i in [Vector2(j[0],j[1]).rotate(body.angle/math.pi*180) for j in fixture.shape.vertices]]
+            pygame.draw.polygon(screen,0xff0000,vertices, 1)
     pygame.display.flip()

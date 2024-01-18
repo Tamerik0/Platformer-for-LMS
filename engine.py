@@ -226,7 +226,7 @@ class Scene(Renderable, InputEventListener, Updatable):
         self.updatables = []
         self.input_listeners = []
         self.collision_system = CollisionSystem()
-        # self.world.contactListener = self.collision_system
+        self.world.contactListener = self.collision_system
         self.objects = []
         self.main_camera = None
 
@@ -287,8 +287,6 @@ class Scene(Renderable, InputEventListener, Updatable):
                         obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
                         scene.objects.append(obj)
                         break
-
-
         return scene
 
 

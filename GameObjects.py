@@ -20,7 +20,6 @@ class Box(GameObject):
     def __init__(self, scene, collider):
         super().__init__(scene)
         self.sprite = Sprite(self, pygame.image.load('box.png'))
-        self.sprite.pivot = Vector2(16, 16)
         self.body = RigidBody(scene.world, collider)
         self.transform = Transform(self, self.sprite, self.body)
 
@@ -33,7 +32,6 @@ class Box1(GameObject):
     def __init__(self, scene, collider):
         super().__init__(scene)
         self.sprite = Sprite(self, pygame.image.load('box.png'))
-        # self.sprite.pivot = Vector2(16, 16)
         self.body = RigidBody(scene.world, collider, body_type=b2_staticBody)
         self.transform = Transform(self, self.sprite, self.body)
 
@@ -115,12 +113,41 @@ class Spike2(Spike):
     pass
 class Lovushka1(Spike):
     pass
+class Trigger1(GameObject):
+    def __init__(self, parent, collider):
+        super().__init__(parent)
+        fixtureDef = b2FixtureDef()
+        fixtureDef.shape = b2PolygonShape(vertices=collider)
+        fixtureDef.isSensor = True
+        bodyDef = b2BodyDef()
+        bodyDef.fixtures = fixtureDef
+        bodyDef.type = b2_staticBody
+        self.body = self.scene.world.CreateBody(bodyDef)
+        self.transform = Transform(self, None, self.body)
+        self.scene.collision_system.add_listener(self, self.body.fixtures[0])
+        for i in self.scene.objects:
+            if isinstance(i, Lovushka1):
+                self.lovushka = i
+    def begin_contact(self, contact: b2Contact):
+        if 'Player' in [contact.fixtureA.userData, contact.fixtureB.userData]:
+            self.lovushka.body.position -= b2Vec2(1, 0)
+    def end_contact(self, *args):
+        pass
+
+    @staticmethod
+    def instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider):
+        obj = Trigger1(scene, collider)
+        obj.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
+        obj.transform.rotation = angle
+        return obj
+
 
 class Player(GameObject, Updatable):
     def __init__(self, parent, collider):
         super().__init__(parent)
         self.sprite = Sprite(self, pygame.image.load('player.png'))
         self.body = RigidBody(self.scene.world, collider=collider)
+        self.body.fixtures[0].userData = 'Player'
         self.transform = Transform(self, self.sprite, self.body)
         self.speed = 2
         self.acceleration = 50
