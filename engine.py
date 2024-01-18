@@ -8,6 +8,7 @@ from pygame import Surface
 from pygame.math import Vector2
 
 
+
 class CollisionEvent:
     def __init__(self, contact, begin=True):
         self.contact = contact
@@ -65,6 +66,7 @@ class InputEventListener:
 
 class GameObject:
     def __init__(self, parent):
+        self.parent = parent
         self.children = []
         self.enabled = True
         if isinstance(parent, Scene):
@@ -148,16 +150,14 @@ class Sprite(GameObject, Renderable):
         self.size = Vector2(self.width, value)
 
     def render(self, screen: Surface, camera, deltatime):
-        t = Surface((self.image.get_width()+100, self.image.get_height()+100), pygame.SRCALPHA)
-        t.set_colorkey((0,0,0,0))
+        t = Surface((self.image.get_width()+20, self.image.get_height()+20), pygame.SRCALPHA)
+        # t.set_colorkey((0,0,0,0))
         # t.fill(0,special_flags=pygame.BLEND_RGBA_MIN)
-        t.blit(self.image, (50,50))
-        # self.image.set_colorkey((0,0,0,0))
-        scaled_image = pygame.transform.scale(self.image,
-                                              Vector2(self.size.x * camera.scale.x, self.size.y * camera.scale.y))
+        t.blit(self.image, (10,10))
+        scaled_image = pygame.transform.scale(t, Vector2((self.size.x+10) * camera.scale.x, (self.size.y+10) * camera.scale.y))
         self.rotation %= 360
         rotation = self.rotation
-        if rotation % 90 < 0.1 or 89.9 < rotation % 90:
+        if rotation % 90 < 1 or 89 < rotation % 90:
             rotation = round(rotation / 90) * 90
         rotated_image = pygame.transform.rotate(scaled_image, rotation)
         render_pos = self.pos - camera.pos * Transform.PPM
