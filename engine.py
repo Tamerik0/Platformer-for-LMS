@@ -8,7 +8,6 @@ from pygame import Surface
 from pygame.math import Vector2
 
 
-
 class CollisionEvent:
     def __init__(self, contact, begin=True):
         self.contact = contact
@@ -81,14 +80,30 @@ class GameObject:
         if isinstance(self, Updatable):
             self.scene.updatables.append(self)
 
+    def load(self, x, y, angle, width, height, pivotX, pivotY, collider):
+        body = None
+        sprite = None
+        if hasattr(self, 'rb_creator'):
+            self.body = body = self.rb_creator(collider)
+        if hasattr(self, 'sprite'):
+            sprite = self.sprite
+            self.sprite.width = width
+            self.sprite.height = height
+            self.sprite.pivot = Vector2(pivotX, pivotY)
+        self.transform = Transform(self, sprite, body)
+        self.transform.pos = Vector2(x / Transform.PPM, y / Transform.PPM)
+        self.transform.rotation = angle
+
     def set_enabled(self, enabled):
         self.enabled = enabled
         for i in self.children:
             i.set_enabled(enabled)
+    def Start(self):
+        pass
 
 
 class Sprite(GameObject, Renderable):
-    def __init__(self, parent, img:pygame.image=None, x=0, y=0, width=None, height=None):
+    def __init__(self, parent, img: pygame.image = None, x=0, y=0, width=None, height=None):
         super().__init__(parent)
         self._pivot = Vector2(0.5, 0.5)
         self.image = img
@@ -109,7 +124,7 @@ class Sprite(GameObject, Renderable):
     def pivot(self, value):
         self._pivot = value
         if self.image is not None:
-            self.center_offset = self.image.get_rect().center - Vector2(value.x*self.width, value.y*self.height)
+            self.center_offset = self.image.get_rect().center - Vector2(value.x * self.image.get_width(), value.y * self.image.get_height())
 
     @property
     def image(self):
@@ -150,11 +165,10 @@ class Sprite(GameObject, Renderable):
         self.size = Vector2(self.width, value)
 
     def render(self, screen: Surface, camera, deltatime):
-        t = Surface((self.image.get_width()+20, self.image.get_height()+20), pygame.SRCALPHA)
-        # t.set_colorkey((0,0,0,0))
-        # t.fill(0,special_flags=pygame.BLEND_RGBA_MIN)
-        t.blit(self.image, (10,10))
-        scaled_image = pygame.transform.scale(t, Vector2((self.size.x+10) * camera.scale.x, (self.size.y+10) * camera.scale.y))
+        t = Surface((self.image.get_width() + 20, self.image.get_height() + 20), pygame.SRCALPHA)
+        t.blit(self.image, (10, 10))
+        scaled_image = pygame.transform.scale(t, Vector2((self.size.x + 10) * camera.scale.x,
+                                                         (self.size.y + 10) * camera.scale.y))
         self.rotation %= 360
         rotation = self.rotation
         if rotation % 90 < 1 or 89 < rotation % 90:
@@ -229,6 +243,7 @@ class Scene(Renderable, InputEventListener, Updatable):
         self.world.contactListener = self.collision_system
         self.objects = []
         self.main_camera = None
+        self.first_frame = True
 
     def render(self, screen: Surface, camera, deltatime):
         canvas = Surface((self.main_camera.width * Transform.PPM * self.main_camera.scale.x,
@@ -243,11 +258,13 @@ class Scene(Renderable, InputEventListener, Updatable):
             i.listen_event(event)
 
     def update(self, deltatime):
+        if self.first_frame:
+            for i in self.objects:
+                i.Start()
+            self.first_frame = False
         for i in self.updatables:
             i.update(deltatime)
         self.world.Step(deltatime, 3, 8)
-
-
 
     @staticmethod
     def load(layout_path, proj_path, types=[]):
@@ -278,13 +295,14 @@ class Scene(Renderable, InputEventListener, Updatable):
                                                  (float(point.get('y')) - 0.5) * height / Transform.PPM))
                         except:
                             collider = [(-0.5, 0.5), (-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)]
-                            collider=[((i[0] * width / Transform.PPM,
-                                             i[1] * height / Transform.PPM)) for i in collider]
+                            collider = [((i[0] * width / Transform.PPM,
+                                          i[1] * height / Transform.PPM)) for i in collider]
                             break
 
                 for i in types:
                     if i.__name__ == type:
-                        obj = i.instantiate(scene, x, y, angle, width, height, pivotX, pivotY, collider)
+                        obj = i(scene)
+                        obj.load(x, y, angle, width, height, pivotX, pivotY, collider)
                         scene.objects.append(obj)
                         break
         return scene
