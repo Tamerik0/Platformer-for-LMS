@@ -319,7 +319,7 @@ class Scene(Renderable, InputEventListener, Updatable):
 
 
 def RigidBody(world: b2World, collider, pos=Vector2(0, 0), angle=0, body_type=b2_dynamicBody, density=1, friction=0,
-              restitution=0.1):
+              restitution=0):
     fixtureDef = b2FixtureDef()
     fixtureDef.shape = b2PolygonShape(vertices=collider)
     fixtureDef.restitution = restitution
