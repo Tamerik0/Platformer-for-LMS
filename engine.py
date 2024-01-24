@@ -73,12 +73,8 @@ class GameObject:
         else:
             self.scene = parent.scene
             parent.children.append(self)
-        if isinstance(self, Renderable):
-            self.scene.renderables.append(self)
-        if isinstance(self, InputEventListener):
-            self.scene.input_listeners.append(self)
-        if isinstance(self, Updatable):
-            self.scene.updatables.append(self)
+        self.set_enabled(True)
+
 
     def load(self, x, y, angle, width, height, pivotX, pivotY, collider):
         body = None
@@ -98,6 +94,20 @@ class GameObject:
         self.enabled = enabled
         for i in self.children:
             i.set_enabled(enabled)
+        if enabled:
+            if isinstance(self, Renderable):
+                self.scene.renderables.append(self)
+            if isinstance(self, InputEventListener):
+                self.scene.input_listeners.append(self)
+            if isinstance(self, Updatable):
+                self.scene.updatables.append(self)
+        else:
+            if isinstance(self, Renderable):
+                self.scene.renderables.remove(self)
+            if isinstance(self, InputEventListener):
+                self.scene.input_listeners.remove(self)
+            if isinstance(self, Updatable):
+                self.scene.updatables.remove(self)
     def Start(self):
         pass
 
@@ -167,8 +177,8 @@ class Sprite(GameObject, Renderable):
     def render(self, screen: Surface, camera, deltatime):
         t = Surface((self.image.get_width() + 20, self.image.get_height() + 20), pygame.SRCALPHA)
         t.blit(self.image, (10, 10))
-        scaled_image = pygame.transform.scale(t, Vector2((self.size.x + 10) * camera.scale.x,
-                                                         (self.size.y + 10) * camera.scale.y))
+        scaled_image = pygame.transform.scale(t, Vector2((t.get_rect().w*self.scale.x) * camera.scale.x,
+                                                         (t.get_rect().h*self.scale.y) * camera.scale.y))
         self.rotation %= 360
         rotation = self.rotation
         if rotation % 90 < 1 or 89 < rotation % 90:
@@ -264,7 +274,7 @@ class Scene(Renderable, InputEventListener, Updatable):
             self.first_frame = False
         for i in self.updatables:
             i.update(deltatime)
-        self.world.Step(deltatime, 3, 8)
+        self.world.Step(deltatime, 10, 10)
 
     @staticmethod
     def load(layout_path, proj_path, types=[]):
@@ -308,7 +318,7 @@ class Scene(Renderable, InputEventListener, Updatable):
         return scene
 
 
-def RigidBody(world: b2World, collider, pos=Vector2(0, 0), angle=0, body_type=b2_dynamicBody, density=1, friction=0.8,
+def RigidBody(world: b2World, collider, pos=Vector2(0, 0), angle=0, body_type=b2_dynamicBody, density=1, friction=0,
               restitution=0.1):
     fixtureDef = b2FixtureDef()
     fixtureDef.shape = b2PolygonShape(vertices=collider)
